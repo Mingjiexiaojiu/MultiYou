@@ -8,9 +8,10 @@
 
 <br/>
 
-![Status](https://img.shields.io/badge/状态-开发中-blueviolet?style=for-the-badge)
-![License](https://img.shields.io/badge/许可证-MIT-blue?style=for-the-badge)
-![Platform](https://img.shields.io/badge/平台-Windows%20%7C%20macOS-lightgrey?style=for-the-badge)
+[![Status](https://img.shields.io/badge/Status-In%20Development-8b5cf6?style=flat-square&logo=githubactions&logoColor=white)](../../)
+[![License](https://img.shields.io/badge/License-MIT-3b82f6?style=flat-square&logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-64748b?style=flat-square&logo=electron&logoColor=white)](../../)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-22c55e?style=flat-square&logo=git&logoColor=white)](../../pulls)
 
 </div>
 
