@@ -1,6 +1,6 @@
 ﻿<div align="center">
 
-# ✨ MultiYou
+<img src="assets/MultiYou.png" alt="MultiYou" width="600"/>
 
 ### 让多个世界的你，为现在的你工作
 
