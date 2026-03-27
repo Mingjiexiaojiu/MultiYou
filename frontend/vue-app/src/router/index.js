@@ -43,10 +43,10 @@ router.beforeEach((to) => {
     return '/login'
   }
 
-  // Logged in but onboarding incomplete → force wizard
-  if (auth.token && !auth.onboardingDone && !to.meta.public && !to.meta.bypassOnboarding) {
-    return '/onboarding'
-  }
+  // Phase 1: Onboarding wizard disabled — users go straight to main app
+  // if (auth.token && !auth.onboardingDone && !to.meta.public && !to.meta.bypassOnboarding) {
+  //   return '/onboarding'
+  // }
 })
 
 export default router

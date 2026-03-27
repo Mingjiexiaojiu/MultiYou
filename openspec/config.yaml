@@ -8,7 +8,8 @@ schema: spec-driven
 #     Tech stack: TypeScript, React, Node.js
 #     We use conventional commits
 #     Domain: e-commerce platform
-
+context: |
+  虚拟环境：conda里的MultiYou的虚拟环境
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
 # Example:

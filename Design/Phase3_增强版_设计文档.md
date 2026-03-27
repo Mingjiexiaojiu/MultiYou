@@ -1,497 +1,323 @@
-# 📋 MultiYou 第三阶段设计文档 — 增强版
+# 📋 MultiYou 第三阶段设计文档 — 多分身与能力扩展版
 
-> **阶段目标**：在多分身可用的基础上，增强产品的“生命感”和“桌面陪伴感”，实现桌面动画、状态系统、互动反馈与整体 UI/UX 提升。  
-> **交付物**：具备像素分身动态表现、状态切换、桌面悬浮展示和更成熟交互体验的增强版桌面应用。
+> **阶段目标**：将单分身产品扩展为可管理多个分身的系统，同时引入多模型配置与技能系统基础版。  
+> **交付物**：支持多分身管理、分身绑定不同模型、技能注册与绑定、基础技能调用的桌面应用版本。
 
 ---
 
-## 一、阶段概述
+## 一、阶段定位
 
-第三阶段不再只是补功能，而是开始塑造 MultiYou 的产品体验差异化。前两阶段解决的是“能不能用”，第三阶段解决的是“是否有灵魂、是否让人愿意长期使用”。
+第三阶段开始从“一个像素分身”升级为“多个分身共同存在的系统”。
 
-本阶段聚焦四个方向：
+重点解决三类问题：
 
-- **桌面可视化**：让分身从静态头像变成可动的像素角色
-- **状态系统**：赋予分身待机、行走、思考、回复等状态表现
-- **交互反馈**：让用户感知分身正在工作，而非仅仅显示一段文本
-- **UI/UX 提升**：让桌面端更像一款完整产品，而不是管理后台
+- 一个用户如何管理多个分身
+- 不同分身如何绑定不同模型与人格
+- 分身如何具备基础的外部能力调用
 
-### 核心功能清单
+### 核心成果
 
-| 功能 | 说明 | 优先级 |
+| 能力 | 说明 | 优先级 |
 |:---|:---|:---:|
-| 分身动态渲染 | 像素角色在桌面或应用内动态展示 | P0 |
-| 状态机系统 | 待机、行走、思考、回复、忙碌等状态 | P0 |
-| Canvas 动画引擎 | 统一驱动帧动画与位置更新 | P0 |
-| 桌面悬浮模式 | 小窗显示分身，支持固定桌面角落 | P1 |
-| 聊天状态可视化 | 打字中、思考中、技能执行中 | P1 |
-| UI 视觉升级 | 优化布局、卡片、聊天和主题风格 | P1 |
-| 资源管理机制 | 管理精灵图、状态贴图、动画帧 | P1 |
+| 多分身管理 | 创建、查看、编辑、删除多个分身 | P0 |
+| 多模型绑定 | 分身可绑定不同模型配置 | P0 |
+| 技能系统基础版 | 技能注册、绑定、调用 | P0 |
+| 人格模板复用 | 人格模板可重复使用 | P1 |
+| 分身详情页 | 查看分身完整配置 | P1 |
+| 聊天编排 | 对话时按分身配置组装上下文 | P0 |
 
-### 本阶段边界（避免跨阶段混入）
+### 本阶段边界
 
 **本阶段只包含：**
-- 分身动画渲染
-- 状态机与交互反馈
-- 桌面悬浮窗体验
-- 前端 UI/UX 质量提升
+
+- 多分身管理
+- 多模型配置与切换
+- 技能系统基础版
+- 聊天编排
 
 **本阶段不包含：**
-- 云端同步与账号跨端一致性
-- 技能市场发布与安装生态
-- 多 Agent 协作任务编排
-- 平台级服务拆分与治理体系
+
+- 动画渲染与状态机
+- 桌面悬浮陪伴
+- 云同步、技能市场、多 Agent 协作
 
 ---
 
-## 二、设计目标
+## 二、核心公式
 
-### 产品目标
+第三阶段正式落地核心定义：
 
-- 强化“这不是一个普通聊天机器人，而是你的数字分身”
-- 提升桌面端停留时长和陪伴感
-- 通过动效和状态让 AI 行为更可理解
+**分身 = Persona + Model + Skills**
 
-### 工程目标
-
-- 将视觉表现从业务逻辑中解耦
-- 建立可扩展的角色状态机
-- 统一管理角色资源、状态和事件
+这意味着分身不再只是“头像 + 聊天对象”，而是一个带有能力配置的实体。
 
 ---
 
-## 三、整体架构升级
+## 三、架构升级
 
-第三阶段新增三类前端核心模块：
+### 新增关键模块
 
-- **Avatar Renderer**：负责角色渲染
-- **Animation Engine**：负责帧驱动、坐标更新、节奏控制
-- **State Machine**：负责角色行为状态切换
+- **Model Registry**：统一管理本地与云端模型
+- **Skill Engine**：管理技能注册、绑定、调用
+- **Chat Orchestrator**：组装上下文、决定是否触发技能
 
 ### 架构图
 
 ```mermaid
 graph TD
-    subgraph 前端桌面端
-        UI[Vue3 UI 层]
-        AvatarRenderer[Avatar Renderer]
-        AnimationEngine[Animation Engine]
-        StateMachine[Avatar State Machine]
-        AssetManager[Asset Manager]
-        FloatingWindow[桌面悬浮窗]
-
-        UI --> AvatarRenderer
-        AvatarRenderer --> AnimationEngine
-        AvatarRenderer --> AssetManager
-        AnimationEngine --> StateMachine
-        FloatingWindow --> AvatarRenderer
+    subgraph Frontend [Electron + Vue3]
+        Home[多分身主页]
+        Detail[分身详情页]
+        Chat[聊天页]
+        SkillPage[技能管理页]
+        ModelPage[模型管理页]
     end
 
-    subgraph 后端服务
-        API[FastAPI API]
+    subgraph Backend [FastAPI]
+        API[REST API]
         AvatarSvc[Avatar Service]
-        ChatSvc[Chat Orchestrator]
+        PersonaSvc[Persona Service]
+        ModelRegistry[Model Registry]
+        SkillEngine[Skill Engine]
+        Orchestrator[Chat Orchestrator]
+        DB[(SQLite)]
+
+        API --> AvatarSvc
+        API --> PersonaSvc
+        API --> ModelRegistry
+        API --> SkillEngine
+        API --> Orchestrator
+
+        AvatarSvc --> DB
+        PersonaSvc --> DB
+        ModelRegistry --> DB
+        SkillEngine --> DB
+        Orchestrator --> DB
     end
 
-    UI --> API
-    StateMachine --> UI
-    UI --> StateMachine
+    ModelRegistry --> Ollama[Ollama]
+    ModelRegistry --> CloudLLM[云模型]
+    SkillEngine --> Worker[技能执行器]
+    Orchestrator --> ModelRegistry
+    Orchestrator --> SkillEngine
 ```
 
 ---
 
-## 四、分身视觉系统设计
+## 四、数据模型升级
 
-### 分身表现结构
+```sql
+CREATE TABLE skill (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    endpoint TEXT,
+    schema_json TEXT,
+    enabled INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-第三阶段不再只使用单张头像，而是引入分层资源结构：
-
-```
-Avatar Visual = Face + Body + Clothes + Emotion + Animation State
-```
-
-### 资源目录建议
-
-```
-assets/
-└── avatar/
-    ├── body/
-    │   ├── idle/
-    │   ├── walk/
-    │   └── think/
-    ├── face/
-    │   ├── neutral/
-    │   ├── happy/
-    │   ├── thinking/
-    │   └── busy/
-    ├── clothes/
-    │   ├── student/
-    │   ├── worker/
-    │   └── coder/
-    └── metadata/
-        └── atlas.json
+CREATE TABLE avatar_skill (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    avatar_id INTEGER NOT NULL,
+    skill_id INTEGER NOT NULL,
+    priority INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (avatar_id) REFERENCES avatar(id),
+    FOREIGN KEY (skill_id) REFERENCES skill(id)
+);
 ```
 
-### 分层渲染顺序
+### 设计重点
 
-```mermaid
-flowchart LR
-    Body[身体层] --> Clothes[衣服层]
-    Clothes --> Face[表情层]
-    Face --> Effects[状态特效层]
-```
-
-### 说明
-
-- 身体决定基础动作姿态
-- 衣服表示角色身份差异
-- 脸部表情反映当前情绪/状态
-- 特效层用于表现思考、消息提示、技能执行等反馈
+- 一个用户可以拥有多个 avatar
+- 每个 avatar 绑定一个 model
+- 每个 avatar 可以绑定多个 skill
+- persona 模板可以被多个 avatar 复用
 
 ---
 
-## 五、动画系统设计
-
-### 动画驱动原理
-
-使用 Canvas + requestAnimationFrame 实现前端动画渲染。动画循环负责：
-
-1. 更新状态机
-2. 计算角色位置
-3. 切换动画帧
-4. 渲染当前图层
-
-### 动画主循环
-
-```javascript
-function loop(timestamp) {
-  updateState(timestamp)
-  updatePosition(timestamp)
-  updateAnimationFrame(timestamp)
-  renderAvatar()
-  requestAnimationFrame(loop)
-}
-```
-
-### 动画帧定义
-
-```ts
-interface AnimationClip {
-  name: string
-  frames: string[]
-  fps: number
-  loop: boolean
-}
-```
-
-### 示例动画资源
-
-| 动画 | 说明 | 帧数 | fps |
-|:---|:---|:---:|:---:|
-| idle | 待机轻微呼吸 | 4 | 4 |
-| walk | 行走 | 6 | 8 |
-| think | 思考动作 | 4 | 5 |
-| speak | 回复时嘴部变化或轻微跳动 | 3 | 6 |
-| busy | 技能执行中 | 4 | 6 |
-
-### 位置更新策略
-
-本阶段采用二维平面内的简单角色移动逻辑：
-
-```javascript
-avatar.x += avatar.velocityX
-avatar.y += avatar.velocityY
-```
-
-可用于：
-- 悬浮窗内短距离走动
-- 聊天期间轻微位移
-- 状态变化时的小范围动态反馈
-
----
-
-## 六、状态机系统设计
-
-### 状态目标
-
-通过有限状态机（FSM）让分身在不同交互阶段表现不同姿态与反馈。
-
-### 状态列表
-
-| 状态 | 说明 | 触发条件 |
-|:---|:---|:---|
-| idle | 待机 | 用户无操作 |
-| walk | 行走 | 悬浮模式自由移动 |
-| thinking | 思考中 | 模型正在生成答案 |
-| speaking | 回复中 | 分身消息逐字显示 |
-| busy | 执行技能中 | 技能调用中 |
-| notification | 有新消息/提醒 | 定时任务或事件触发 |
-| sleep | 长时间无交互 | 超时进入低活跃状态 |
-
-### 状态切换图
-
-```mermaid
-stateDiagram-v2
-    [*] --> idle
-    idle --> walk: 定时随机移动
-    idle --> thinking: 用户发起聊天
-    thinking --> busy: 触发技能执行
-    thinking --> speaking: 模型返回结果
-    busy --> speaking: 技能返回结果
-    speaking --> idle: 回复完成
-    idle --> notification: 外部提醒事件
-    notification --> idle: 用户查看后
-    idle --> sleep: 长时间无交互
-    sleep --> idle: 用户唤醒
-```
-
-### 状态机接口
-
-```ts
-interface AvatarStateMachine {
-  currentState: string
-  transition(event: string): void
-  update(deltaTime: number): void
-}
-```
-
-### 事件示例
-
-| 事件 | 来源 |
-|:---|:---|
-| SEND_MESSAGE | 用户发送消息 |
-| MODEL_START | 后端开始推理 |
-| MODEL_DONE | 模型返回结果 |
-| SKILL_START | 技能调用开始 |
-| SKILL_DONE | 技能执行结束 |
-| USER_IDLE_TIMEOUT | 用户长时间无操作 |
-| REMINDER_TRIGGERED | 提醒任务触发 |
-
----
-
-## 七、聊天可视化增强
+## 五、技能系统设计
 
 ### 目标
 
-提升用户对分身工作过程的理解，让“等待模型回复”的过程具有视觉反馈，而不是纯空白等待。
+让分身可以在基础文本回复之外，调用外部能力处理任务。
 
-### 表现方式
-
-- **thinking**：头顶气泡或小图标，如 `...`
-- **busy**：状态标签显示“正在执行技能”
-- **speaking**：聊天消息逐字出现，配合轻微动作
-- **notification**：角色头顶弹出红点/提示框
-
-### 对话流程增强图
-
-```mermaid
-sequenceDiagram
-    participant 用户
-    participant 前端
-    participant 状态机
-    participant 后端
-
-    用户->>前端: 发送消息
-    前端->>状态机: SEND_MESSAGE
-    状态机->>状态机: idle -> thinking
-    前端->>后端: /api/chat
-    alt 技能被触发
-        后端-->>前端: skill_start
-        前端->>状态机: SKILL_START
-        状态机->>状态机: thinking -> busy
-    end
-    后端-->>前端: 返回最终回答
-    前端->>状态机: MODEL_DONE
-    状态机->>状态机: busy/thinking -> speaking
-    前端->>用户: 逐字显示回复
-    前端->>状态机: SPEAK_DONE
-    状态机->>状态机: speaking -> idle
-```
-
----
-
-## 八、桌面悬浮窗设计
-
-### 场景目标
-
-让分身在聊天窗口之外也能存在，成为“常驻桌面伙伴”。
-
-### 悬浮模式能力
-
-| 能力 | 说明 |
-|:---|:---|
-| 固定显示 | 常驻桌面角落 |
-| 拖拽移动 | 用户可调整位置 |
-| 点击唤起主界面 | 点击角色打开聊天或详情 |
-| 提示消息气泡 | 新消息/提醒时展示气泡 |
-| 自动穿透模式 | 可选不阻碍正常桌面操作 |
-
-### Electron 实现要点
-
-- 使用透明窗口渲染角色
-- 去除窗口边框，开启 always-on-top
-- 支持拖拽位置记忆
-- 根据系统 DPI 调整像素渲染比例
-
-### 悬浮窗结构
-
-```mermaid
-flowchart LR
-    FloatingWindow[透明悬浮窗] --> Canvas[Canvas 渲染层]
-    Canvas --> Renderer[Avatar Renderer]
-    Renderer --> StateMachine[状态机]
-    StateMachine --> EventBus[事件总线]
-    EventBus --> MainUI[主界面]
-```
-
----
-
-## 九、前端 UI/UX 升级
-
-### 设计方向
-
-本阶段需要让界面从“功能页”升级为“产品界面”，重点优化：
-
-- 视觉层级清晰
-- 卡片与聊天界面更具人格感
-- 分身相关元素更突出
-- 降低配置感，增强陪伴感
-
-### 重点优化区域
-
-| 区域 | 优化点 |
-|:---|:---|
-| 首页 | 分身卡片更具角色感，加入状态徽标 |
-| 聊天页 | 左侧角色区更醒目，展示动态分身 |
-| 分身详情页 | 强化人格、技能、模型展示分组 |
-| 主题系统 | 引入统一色板、字体、像素风元素 |
-| 空状态页 | 提升视觉氛围，减少空白感 |
-
-### 首页卡片升级示意
-
-```
-┌──────────────────────────┐
-│ [动态像素分身]     ● 在线 │
-│ 名称：程序分身             │
-│ 人格：理性 / 精准          │
-│ 模型：deepseek-coder       │
-│ 技能：CodeGen / FileRead   │
-│ [进入聊天]  [查看详情]     │
-└──────────────────────────┘
-```
-
-### 聊天页布局升级
-
-```
-┌────────────────────────────────────────────┐
-│ 返回      程序分身               设置       │
-├────────────────────────────────────────────┤
-│ [左侧动态角色区]   [右侧聊天区]            │
-│  状态：Thinking     用户消息               │
-│  表情：思考中       分身回复               │
-│  技能：CodeGen      技能调用提示           │
-├────────────────────────────────────────────┤
-│ 输入框                              [发送] │
-└────────────────────────────────────────────┘
-```
-
----
-
-## 十、资源管理与性能设计
-
-### 资源管理目标
-
-动画与状态资源增多后，需要统一管理，避免前端散乱加载。
-
-### Asset Manager 职责
-
-- 管理图片路径和元数据
-- 懒加载动画资源
-- 做缓存复用
-- 管理主题/皮肤资源切换
-
-### 元数据示例
+### Skill 元数据示例
 
 ```json
 {
-  "avatarType": "student",
-  "animations": {
-    "idle": ["idle_1.png", "idle_2.png", "idle_3.png"],
-    "walk": ["walk_1.png", "walk_2.png", "walk_3.png"]
-  },
-  "emotions": {
-    "neutral": "face_neutral.png",
-    "thinking": "face_thinking.png"
+  "name": "Summarize",
+  "description": "对文本进行摘要",
+  "endpoint": "/skills/summarize",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "text": { "type": "string" }
+    },
+    "required": ["text"]
   }
 }
 ```
 
-### 性能原则
+### 技能调用策略
 
-- 动画帧率不追求过高，像素风适合低帧数动画
-- 聊天页和悬浮窗共用渲染核心，避免双套逻辑
-- 大量分身时只激活当前视图中的动画实例
-- 非活跃窗口降低刷新频率
+1. Chat Orchestrator 根据规则判断是否命中技能
+2. 命中后调用 Skill Engine
+3. Skill Engine 执行技能并返回结构化结果
+4. Skill 结果注入模型上下文
+5. 模型生成最终自然语言回复
+
+### 首批建议技能
+
+| 技能 | 用途 |
+|:---|:---|
+| Summarize | 文本摘要 |
+| WebSearch | 搜索结果摘要 |
+| CodeGen | 代码生成 |
+| FileRead | 本地文本读取 |
 
 ---
 
-## 十一、后端联动改造
+## 六、多模型接入设计
 
-尽管本阶段重点在前端表现，但后端也要配合输出状态事件。
+### 目标
 
-### 后端需要补充的事件信息
+不同分身可以绑定不同模型，实现人格与模型差异化。
 
-| 事件 | 说明 |
-|:---|:---|
-| `model_start` | 模型开始推理 |
-| `skill_start` | 技能开始执行 |
-| `skill_done` | 技能执行结束 |
-| `reply_stream` | 流式返回文本 |
-| `reply_done` | 回复完成 |
+### 抽象接口
 
-### 返回格式建议
-
-```json
-{
-  "session_id": 42,
-  "events": [
-    { "type": "model_start", "timestamp": 171000001 },
-    { "type": "skill_start", "skill": "CodeGen" },
-    { "type": "skill_done", "skill": "CodeGen" },
-    { "type": "reply_done" }
-  ],
-  "reply": "这是最终生成的代码示例..."
-}
+```python
+class BaseModelProvider:
+    async def chat(self, model_name: str, messages: list, config: dict) -> str:
+        raise NotImplementedError
 ```
 
-### 流式输出建议
+### Provider 范围
 
-若条件允许，本阶段可引入 SSE 或 WebSocket，让前端逐步显示回复，并联动 speaking 状态。
+- OllamaProvider
+- OpenAIProvider
+- DeepSeekProvider
+
+### 统一入口
+
+```python
+class ModelRegistry:
+    async def chat(self, model_record, messages):
+        pass
+```
 
 ---
 
-## 十二、开发任务拆解
+## 七、聊天编排设计
+
+### 对话流程
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant UI as 前端
+    participant API as 后端
+    participant O as Chat Orchestrator
+    participant S as Skill Engine
+    participant M as Model Registry
+
+    User->>UI: 输入问题
+    UI->>API: POST /api/chat
+    API->>O: 组装 Avatar 上下文
+    O->>O: 判断是否需要调用技能
+    alt 命中技能
+        O->>S: 执行技能
+        S-->>O: 返回结构化结果
+    end
+    O->>M: 调用分身绑定模型
+    M-->>O: 返回最终回答
+    O-->>API: 回复文本
+    API-->>UI: 返回聊天响应
+```
+
+---
+
+## 八、前端页面升级
+
+### 页面范围
+
+| 页面 | 说明 |
+|:---|:---|
+| 主页 | 多分身列表、搜索、创建 |
+| 分身详情页 | 人格、模型、技能展示 |
+| 模型管理页 | 模型新增、编辑、测试 |
+| 技能管理页 | 技能列表、绑定、解绑 |
+| 人格管理页 | 模板创建与复用 |
+
+### 体验原则
+
+- 配置能力集中到详情页和管理页
+- 聊天页只做聊天，不承载复杂配置
+- 多分身切换要轻量清晰
+
+---
+
+## 九、后端 API 扩展
+
+### 模型接口
+
+| 方法 | 路径 | 说明 |
+|:---|:---|:---|
+| GET | `/api/models` | 获取模型列表 |
+| POST | `/api/models` | 新增模型 |
+| PUT | `/api/models/{id}` | 修改模型 |
+| DELETE | `/api/models/{id}` | 删除模型 |
+
+### 技能接口
+
+| 方法 | 路径 | 说明 |
+|:---|:---|:---|
+| GET | `/api/skills` | 获取技能列表 |
+| POST | `/api/skills` | 注册技能 |
+| POST | `/api/avatars/{id}/skills` | 绑定技能 |
+| DELETE | `/api/avatars/{id}/skills/{skillId}` | 解绑技能 |
+
+### 分身接口
+
+| 方法 | 路径 | 说明 |
+|:---|:---|:---|
+| PUT | `/api/avatars/{id}` | 更新分身 |
+| DELETE | `/api/avatars/{id}` | 删除分身 |
+
+---
+
+## 十、安全边界
+
+- 技能执行必须经过统一 Skill Engine
+- Skill 输入需要 schema 校验
+- 文件读取技能必须限制根目录白名单
+- 高风险命令类技能不在本阶段开放
+- 云模型 API Key 继续使用独立安全存储
+
+---
+
+## 十一、开发任务拆解
 
 | # | 任务 | 模块 | 依赖 |
 |:---:|:---|:---:|:---:|
-| 1 | 设计分身动画资源规范与目录结构 | 前端 | 阶段二 |
-| 2 | 实现 Asset Manager | 前端 | 1 |
-| 3 | 实现 Avatar Renderer | 前端 | 1, 2 |
-| 4 | 实现 Animation Engine | 前端 | 3 |
-| 5 | 实现 Avatar State Machine | 前端 | 3 |
-| 6 | 聊天页接入状态可视化 | 前端 | 5 |
-| 7 | 实现桌面悬浮窗模式 | Electron | 3, 5 |
-| 8 | 升级首页、详情页、聊天页 UI | 前端 | 3 |
-| 9 | 后端增加事件状态输出 | 后端 | 阶段二 |
-| 10 | 增加动画与悬浮模式测试 | 全栈 | all |
+| 1 | 设计多分身数据结构与页面模型 | 全栈 | 阶段二 |
+| 2 | 扩展 Avatar CRUD 支持多分身 | 后端 | 1 |
+| 3 | 实现 Model Registry | 后端 | 阶段一 |
+| 4 | 实现模型管理 API | 后端 | 3 |
+| 5 | 设计并实现 Skill 表与绑定表 | 后端 | 1 |
+| 6 | 实现 Skill Engine | 后端 | 5 |
+| 7 | 实现 Chat Orchestrator | 后端 | 3, 6 |
+| 8 | 前端新增分身详情、模型管理、技能管理页面 | 前端 | 2, 4, 6 |
+| 9 | 完成多分身聊天联调 | 全栈 | 7, 8 |
 
 ---
 
-## 十三、验收标准
+## 十二、验收标准
 
-- [ ] 分身可以在应用中以动态像素角色形式展示
-- [ ] 分身具备至少 idle、thinking、speaking 三种状态
-- [ ] 聊天过程中状态切换与后端执行链路一致
-- [ ] 悬浮窗模式可正常显示、拖拽和打开主界面
-- [ ] UI 比第二阶段明显更完整、更有产品感
-- [ ] 动画资源管理清晰，可支持后续继续扩展
+- [ ] 一个用户可以创建多个分身
+- [ ] 每个分身可以绑定不同人格和模型
+- [ ] 可以在 UI 中查看并管理技能绑定关系
+- [ ] 用户发起请求时，系统可按规则触发技能
+- [ ] 技能结果可以注入模型生成更完整答案
+- [ ] 本地模型与云端模型都可被正常调用

@@ -47,12 +47,15 @@ async def create_avatar_endpoint(
     name: str = Form(...),
     persona_id: int = Form(...),
     model_id: int = Form(...),
-    image: UploadFile = File(...),
+    image: UploadFile = File(None),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    image_bytes = await image.read()
-    content_type = image.content_type or "image/jpeg"
+    image_bytes = None
+    content_type = None
+    if image:
+        image_bytes = await image.read()
+        content_type = image.content_type or "image/jpeg"
     try:
         avatar = create_avatar(
             db=db,

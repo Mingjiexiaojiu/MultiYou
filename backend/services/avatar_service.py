@@ -1,9 +1,13 @@
 import os
+import shutil
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
 from models.db_models import Avatar as AvatarModel
 from services.image_service import pixelate_avatar, validate_image
+
+_DEFAULT_IMAGE = "/assets/avatar/default.png"
 
 
 def _avatar_dir() -> str:
@@ -20,11 +24,9 @@ def create_avatar(
     name: str,
     persona_id: int,
     model_id: int,
-    image_bytes: bytes,
-    content_type: str,
+    image_bytes: Optional[bytes] = None,
+    content_type: Optional[str] = None,
 ) -> AvatarModel:
-    validate_image(image_bytes, content_type)
-
     avatar = AvatarModel(
         user_id=user_id,
         name=name,
@@ -34,9 +36,13 @@ def create_avatar(
     db.add(avatar)
     db.flush()  # obtain avatar.id before writing file
 
-    output_path = os.path.join(_avatar_dir(), f"{avatar.id}.png")
-    pixelate_avatar(image_bytes, output_path)
-    avatar.image_path = f"/assets/avatar/{avatar.id}.png"
+    if image_bytes and content_type:
+        validate_image(image_bytes, content_type)
+        output_path = os.path.join(_avatar_dir(), f"{avatar.id}.png")
+        pixelate_avatar(image_bytes, output_path)
+        avatar.image_path = f"/assets/avatar/{avatar.id}.png"
+    else:
+        avatar.image_path = _DEFAULT_IMAGE
 
     db.commit()
     db.refresh(avatar)

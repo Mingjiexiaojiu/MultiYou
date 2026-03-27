@@ -68,7 +68,7 @@ const loading = ref(false)
 const error = ref('')
 
 const ready = computed(() =>
-  form.value.name && croppedBlob.value && form.value.personaId && form.value.modelId
+  form.value.name && form.value.personaId && form.value.modelId
 )
 
 onMounted(async () => {
@@ -94,7 +94,10 @@ async function submit() {
     fd.append('name', form.value.name)
     fd.append('persona_id', form.value.personaId)
     fd.append('model_id', form.value.modelId)
-    fd.append('image', croppedBlob.value, 'avatar.png')    await createAvatar(fd)
+    if (croppedBlob.value) {
+      fd.append('image', croppedBlob.value, 'avatar.png')
+    }
+    await createAvatar(fd)
     router.push('/home')
   } catch (e) {
     error.value = e.response?.data?.detail || '创建失败，请重试'
